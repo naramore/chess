@@ -1,6 +1,6 @@
 (ns chess.core
-    (:require [[chess.indexer :as i]
-               [chess.positioning :as p]]))
+    (:require [chess.indexer :as i]
+              [chess.positioning :as p]))
 
 ;; Chess Board Data Structure:
 ;; ----------------------------
