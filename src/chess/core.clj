@@ -52,7 +52,7 @@
           [dx dy] dest
           piece (i/lookup board pos)
           dest-piece (i/lookup board dest)]
-        (if (p/contains-value? (p/get-valid-destinations board pos) dest)
+        (if (i/contains-value? (p/get-valid-destinations board pos) dest)
             (do
                 (assoc board (i/index px py) \-)
                 (assoc board (i/index dx dy) piece))

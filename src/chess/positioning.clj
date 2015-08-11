@@ -18,6 +18,13 @@
 
 (def not-nil? (complement nil?))
 
+(defn my-pieces? [board & positions]
+    (if (and (> (count positions) 1))
+        (let [pieces (map #(i/lookup board %) positions)]
+            (or (every? #(Character/isUpperCase %) pieces)
+                (every? #(Character/isLowerCase %) pieces)))
+        nil))
+
 (defn shift-position [[file rank] [fs rs]]
     (let [new-file (char (+ (int file) fs))
           new-rank (char (+ (int rank) rs))]
@@ -45,13 +52,6 @@
 (defn shift-walks
   ([board pos shifts] (shift-walks board pos shifts 10))
   ([board pos shifts limit] (mapcat #(shift-walk board pos % limit) shifts)))
-
-(defn my-pieces? [board & positions]
-    (if (and (> (count positions) 1))
-        (let [pieces (map #(i/lookup board %) positions)]
-            (or (every? #(Character/isUpperCase %) pieces)
-                (every? #(Character/isLowerCase %) pieces)))
-        nil))
 
 (defmulti get-valid-destinations (fn [board pos] (i/lookup board pos)))
 
