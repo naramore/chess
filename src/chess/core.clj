@@ -21,16 +21,20 @@
 ;; Light (lowercase characters)
 
 (def board-state (atom nil))
+(def player-state (atom nil))
+(def game-log (atom nil))
+
+(def starting-board-state [\R \N \B \K \Q \B \N \R
+                           \P \P \P \P \P \P \P \P
+                           \- \- \- \- \- \- \- \-
+                           \- \- \- \- \- \- \- \-
+                           \- \- \- \- \- \- \- \-
+                           \- \- \- \- \- \- \- \-
+                           \p \p \p \p \p \p \p \p
+                           \r \n \b \k \q \b \n \r])
 
 (defn start-game! []
-    (reset! board-state [\R \N \B \K \Q \B \N \R
-                         \P \P \P \P \P \P \P \P
-                         \- \- \- \- \- \- \- \-
-                         \- \- \- \- \- \- \- \-
-                         \- \- \- \- \- \- \- \-
-                         \- \- \- \- \- \- \- \-
-                         \p \p \p \p \p \p \p \p
-                         \r \n \b \k \q \b \n \r]))
+    (reset! board-state starting-board-state))
 
 (defn stop-game! []
     (reset! board-state nil))
