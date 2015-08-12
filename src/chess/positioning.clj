@@ -98,11 +98,14 @@
                                    diagonal-shifts)))
 
 (defmethod get-valid-destinations \p [board pos]
-    (let [player (determine-player board pos)]
-        (shift-walks board pos (pawn-shifts player) 1)))
+    (let [player (determine-player board pos)
+          moves (shift-walks board pos (pawn-shifts player) 1)
+          attacks (shift-walks board pos (pawn-attacks player) 1)]
+        (concat (filter #(= (i/lookup board %) \-) moves)
+                (filter #(not= (i/lookup board %) \-) attacks))))
 
 (defmethod get-valid-destinations :default [board pos]
-    nil)
+    (empty '()))
 
 (defn get-player-piece-positions [board player]
     (->> (combo/cartesian-product (i/valid-files) (i/valid-ranks))

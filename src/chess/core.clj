@@ -33,6 +33,7 @@
 (defn undo! []
     (when (> (count @board-history) 1)
         (swap! board-history pop)
+        (swap! game-log pop)
         (reset! board-state (last @board-history))))
 
 (def starting-board-state [\R \N \B \K \Q \B \N \R
