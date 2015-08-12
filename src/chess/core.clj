@@ -21,8 +21,19 @@
 ;; Light (lowercase characters)
 
 (def board-state (atom nil))
+(def board-history (atom nil))
 (def player-state (atom nil))
 (def game-log (atom nil))
+
+(add-watch board-state :history
+    (fn [_ _ _ n]
+        (when-not (= (last @board-history) n)
+            (swap! board-history conj n))))
+
+(defn undo! []
+    (when (> (count @board-history) 1)
+        (swap! board-history pop)
+        (reset! board-state (last @board-history))))
 
 (def starting-board-state [\R \N \B \K \Q \B \N \R
                            \P \P \P \P \P \P \P \P
@@ -33,27 +44,37 @@
                            \p \p \p \p \p \p \p \p
                            \r \n \b \k \q \b \n \r])
 
+(defn record! [pos dest]
+    (swap! game-log conj [pos dest]))
+
+(defn turn-complete! []
+    (cond
+        (= @player-state :light) (reset! player-state :dark)
+        (= @player-state :dark) (reset! player-state :light)
+        :else nil))
+
 (defn start-game! []
     (do
         (reset! game-log [])
         (reset! player-state :light)
-        (reset! board-state starting-board-state)))
+        (reset! board-state starting-board-state)
+        (reset! board-history [@board-state])))
 
 (defn stop-game! []
     (do
         (reset! game-log nil)
         (reset! player-state nil)
-        (reset! board-state nil)))
+        (reset! board-state nil)
+        (reset! board-history nil)))
 
 (defn move! [pos dest]
-    (let [[px py] pos
-          [dx dy] dest
-          piece (i/lookup @board-state pos)
-          dest-piece (i/lookup @board-state dest)]
-        (if (i/contains-value? (p/get-valid-destinations @board-state pos) dest)
+    (let [piece (i/lookup @board-state pos)]
+        (if (i/contains-value? (p/get-player-moves @board-state @player-state) [pos dest])
             (do
-                (swap! board-state assoc (i/index px py) \-)
-                (swap! board-state assoc (i/index dx dy) piece))
+                (swap! board-state assoc (i/index pos) \-
+                                         (i/index dest) piece)
+                (record! pos dest)
+                (turn-complete!))
             nil)))
 
 (defn castle! [king-pos rook-pos])
@@ -84,11 +105,11 @@
          (#(concat % [generate-board-edge]))
          ((partial clojure.string/join "\n"))))
 
-(defn print-board! []
-    (if (nil? @board-state)
+(defn print-board [board]
+    (if (nil? board)
         (->> (repeat 64 \space)
              (apply vector)
              generate-board
              println)
-        (->> (generate-board @board-state)
+        (->> (generate-board board)
              println)))
