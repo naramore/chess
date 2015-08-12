@@ -34,12 +34,27 @@
                            \r \n \b \k \q \b \n \r])
 
 (defn start-game! []
-    (reset! board-state starting-board-state))
+    (do
+        (reset! game-log [])
+        (reset! player-state :light)
+        (reset! board-state starting-board-state)))
 
 (defn stop-game! []
-    (reset! board-state nil))
+    (do
+        (reset! game-log nil)
+        (reset! player-state nil)
+        (reset! board-state nil)))
 
-(defn move! [pos dest])
+(defn move! [pos dest]
+    (let [[px py] pos
+          [dx dy] dest
+          piece (i/lookup @board-state pos)
+          dest-piece (i/lookup @board-state dest)]
+        (if (i/contains-value? (p/get-valid-destinations @board-state pos) dest)
+            (do
+                (swap! board-state assoc (i/index px py) \-)
+                (swap! board-state assoc (i/index dx dy) piece))
+            nil)))
 
 (defn castle! [king-pos rook-pos])
 
@@ -49,15 +64,31 @@
 
 (defn check [board])
 
+(def generate-board-edge
+    (let [width (count (i/valid-files))]
+        (->> (repeat 8 "---|")
+             (apply concat)
+             (concat "|")
+             (apply str))))
 
+(defn generate-board-rank [rank]
+    (->> (mapcat #(str " " (if (= % \-) \space %) " |") rank)
+         (concat "|")
+         (apply str)))
 
-(defn move [board pos dest]
-    (let [[px py] pos
-          [dx dy] dest
-          piece (i/lookup board pos)
-          dest-piece (i/lookup board dest)]
-        (if (i/contains-value? (p/get-valid-destinations board pos) dest)
-            (do
-                (assoc board (i/index px py) \-)
-                (assoc board (i/index dx dy) piece))
-            nil)))
+(defn generate-board [board]
+    (->> (partition (count (i/valid-files)) board)
+         (map generate-board-rank)
+         (interpose generate-board-edge)
+         (cons generate-board-edge)
+         (#(concat % [generate-board-edge]))
+         ((partial clojure.string/join "\n"))))
+
+(defn print-board! []
+    (if (nil? @board-state)
+        (->> (repeat 64 \space)
+             (apply vector)
+             generate-board
+             println)
+        (->> (generate-board @board-state)
+             println)))
