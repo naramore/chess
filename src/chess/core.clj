@@ -114,3 +114,7 @@
              println)
         (->> (generate-board board)
              println)))
+
+(defn has-moved? [board-history pos]
+    (->> (map #(i/lookup % pos) board-history)
+         (apply =)))
