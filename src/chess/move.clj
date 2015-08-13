@@ -7,6 +7,14 @@
 
 (defn en-passant! [pos enemy-pos])
 
+(defn valid-promotions [player]
+    (difference (player-pieces player) #{\p \k \P \K}))
+
+(defn promote? [board pos dest]
+    (and (pawn? board pos)
+         (or (= (first (valid-ranks)) (second dest))
+             (= (last (valid-ranks)) (second dest)))))
+
 (defn next-player [current-player]
 	(cond
 		(= current-player :light) :dark
@@ -23,16 +31,14 @@
             (assoc :player (next-player (game :player)))
             (assoc-in [:log (count (game :log))] [pos dest]))))
 
-(defn normal-move! [game-atom pos dest]
-    (let [board (@game-atom :board)
-    	  player (@game-atom :player)]
-        (if (contains-value? (get-player-moves board player) [pos dest])
-        	(swap! game-atom update-game pos dest)
-            nil)))
-
-(defn promote? [board pos dest]
-    (and (pawn? board pos)
-         (or (= (first (valid-ranks)) (second dest))
-             (= (last (valid-ranks)) (second dest)))))
-
-(defn promotion! [game-atom pos dest promotion])
+(defn normal-move!
+    ([game-atom pos dest]
+        (normal-move! game-atom pos dest nil))
+    ([game-atom pos dest promotion]
+        (let [board (@game-atom :board)
+              player (@game-atom :player)]
+            (cond (contains-value? (get-player-moves board player) [pos dest])
+                (if (promote? board pos dest)
+                    (cond ((valid-promotions player) promotion)
+                          (swap! game-atom update-game pos dest promotion))
+                    (swap! game-atom update-game pos dest))))))

@@ -1,6 +1,7 @@
 (ns chess.core
     (:require [chess.indexer :refer [not-nil?]]
-              [chess.move :refer [normal-move!]]))
+              [chess.move :refer [normal-move!]]
+              [chess.parser :refer [parse-move]]))
 
 ;; Dark (uppercase characters)
 ;;    | a b c d e f g h |
@@ -16,6 +17,8 @@
 ;; ---|-----------------|---
 ;;    | a b c d e f g h |
 ;; Light (lowercase characters)
+
+(def empty-board (vec (repeat 64 \-)))
 
 (def starting-board [\R \N \B \K \Q \B \N \R
                      \P \P \P \P \P \P \P \P
@@ -49,7 +52,8 @@
     (do (reset! game-state nil)
         (reset! game-history nil)))
 
-(defn move! [pos dest]
-    (let [result (normal-move! game-state pos dest)]
-        (cond (not-nil? result)
-              result)))
+(defn move!
+    ([m] (->> (parse-move m)
+              (apply move!)))
+    ([pos dest] (move! pos dest nil))
+    ([pos dest promotion] (normal-move! game-state pos dest promotion)))
