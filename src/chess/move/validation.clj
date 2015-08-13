@@ -1,6 +1,6 @@
-(ns chess.positioning
+(ns chess.move.validation
 	(:require [chess.indexer :as i]
-            [clojure.math.combinatorics :as combo]))
+            [clojure.math.combinatorics :refer [cartesian-product]]))
 
 (def walk-limit 10)
 
@@ -28,8 +28,6 @@
 (def pawn-attacks {:dark [[1 -1] [-1 -1]]
                    :light [[1 1] [-1 1]]})
 
-(def not-nil? (complement nil?))
-
 (defn determine-player [board pos]
     (let [piece (i/lookup board pos)]
         (->> player-pieces
@@ -45,7 +43,7 @@
             nil)))
 
 (defn shift-position [[file rank] [fs rs]]
-    (if (every? not-nil? [file rank fs rs])
+    (if (every? i/not-nil? [file rank fs rs])
         (let [new-file (char (+ (int file) fs))
               new-rank (char (+ (int rank) rs))]
             (if (and (i/valid-position? [file rank])
@@ -67,7 +65,7 @@
                     (= (i/lookup board current-pos) \-) (recur (conj result current-pos)
                                                                (shift-position current-pos shift)
                                                                (inc distance))
-                    :else (filter not-nil? (conj result current-pos)))
+                    :else (filter i/not-nil? (conj result current-pos)))
                 result))))
 
 (defn shift-walks
@@ -108,7 +106,7 @@
     (empty '()))
 
 (defn get-player-piece-positions [board player]
-    (->> (combo/cartesian-product (i/valid-files) (i/valid-ranks))
+    (->> (cartesian-product (i/valid-files) (i/valid-ranks))
          (map (partial apply str))
          (filter #(= (determine-player board %)
                      player))))

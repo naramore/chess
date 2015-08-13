@@ -1,12 +1,6 @@
 (ns chess.indexer)
 
-;;--------------------------------------------------------------------
-;; https://en.wikipedia.org/wiki/Chess#Notation_for_recording_moves
-;;--------------------------------------------------------------------
-;; {:player-turn :light|:dark
-;;  :board-state []
-;;  :board-history [[]]
-;;  :log [""]}
+(def not-nil? (complement nil?))
 
 (def file-key \a)
 
