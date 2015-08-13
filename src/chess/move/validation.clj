@@ -1,5 +1,6 @@
 (ns chess.move.validation
 	(:require [chess.indexer :as i]
+            [clojure.set :refer [union]]
             [clojure.math.combinatorics :refer [cartesian-product]]))
 
 (def walk-limit 10)
@@ -70,7 +71,8 @@
 
 (defn shift-walks
   ([board pos shifts] (shift-walks board pos shifts walk-limit))
-  ([board pos shifts limit] (mapcat #(shift-walk board pos % limit) shifts)))
+  ([board pos shifts limit] (->> (map #(shift-walk board pos % limit) shifts)
+                                 (apply union))))
 
 (defn piece-selector [board pos]
     (let [piece (i/lookup board pos)]
@@ -99,11 +101,12 @@
     (let [player (determine-player board pos)
           moves (shift-walks board pos (pawn-shifts player) 1)
           attacks (shift-walks board pos (pawn-attacks player) 1)]
-        (concat (filter #(= (i/lookup board %) \-) moves)
-                (filter #(not= (i/lookup board %) \-) attacks))))
+        (->> (concat (filter #(= (i/lookup board %) \-) moves)
+                     (filter #(not= (i/lookup board %) \-) attacks))
+             set)))
 
 (defmethod get-valid-destinations :default [board pos]
-    (empty '()))
+    (empty #{}))
 
 (defn get-player-piece-positions [board player]
     (->> (cartesian-product (i/valid-files) (i/valid-ranks))
@@ -117,3 +120,20 @@
          (apply merge)
          (filter #(not-empty (val %)))
          (mapcat (fn [x] (map #(vector (key x) %) (val x))))))
+
+(defn has-not-moved? [board-history pos]
+    (->> (map #(i/lookup % pos) board-history)
+         (apply =)))
+
+(defn pawn? [board pos]
+    (= (piece-selector board pos) \p))
+
+(defn get-pawn-double-advance [board-history pos]
+    (let [board (last board-history)
+          player (determine-player board pos)]
+        (if (and (pawn? board pos)
+                 (has-not-moved? board-history pos))
+            (->> (shift-walks board pos (pawn-shifts player) 2)
+                 (filter #(= (i/lookup board %) \-))
+                 set)
+            nil)))
