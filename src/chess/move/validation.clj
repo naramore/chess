@@ -145,4 +145,4 @@
          set))
 
 (defn valid-move? [board-history player pos dest]
-    (contains-value? (get-player-moves board-history player) [pos dest]))
+    (i/contains-value? (get-player-moves board-history player) [pos dest]))
