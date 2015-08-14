@@ -1,10 +1,10 @@
 # chess
 
-A Clojure library designed to ... well, that part is up to you.
+Play Chess! Right in your Clojure REPL! If you like playing games by calling functions and dereferencing game state atoms that is...
 
 ## Usage
 
-FIXME
+This is mostly just an exercise for fun.  Use it if you have a strong desire for newbie clojure code I guess...
 
 ## License
 
