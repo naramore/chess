@@ -1,7 +1,7 @@
 (ns chess.move
     (:require [clojure.set :refer [union difference]]
               [chess.indexer :refer [lookup index contains-value? valid-ranks]]
-              [chess.move.validation :refer [valid-move? pawn? player-pieces]]))
+              [chess.move.validation :refer [get-player-piece-positions get-player-moves valid-move? pawn? player-pieces]]))
 
 (defn castle! [king-pos rook-pos])
 
@@ -30,6 +30,18 @@
             (assoc-in [:board (index dest)] piece)
             (assoc :player (next-player (game :player)))
             (assoc-in [:log (count (game :log))] [pos dest]))))
+
+(defn my-king-position [board player]
+    (->> (get-player-piece-positions board player)
+         (filter #(#{\k \K} (lookup board %)))
+         first))
+
+(defn check? [board-history player]
+    (let [king (my-king-position (last board-history) player)
+          enemy (next-player player)]
+        (->> (get-player-moves board-history enemy)
+             (filter #(= (second %) king))
+             not-empty)))
 
 (defn normal-move!
     ([game-atom history-atom pos dest]
