@@ -57,3 +57,13 @@
               (apply move!)))
     ([pos dest] (move! pos dest nil))
     ([pos dest promotion] (normal-move! game-state pos dest promotion)))
+
+(defn save-game! [file]
+    (let [contents (with-out-str (pr @game-history))]
+        (spit file contents)))
+
+(defn load-game! [file]
+    (let [contents (slurp file)
+          history (read-string contents)]
+        (do (reset! game-state (last history))
+            (reset! game-history history))))
