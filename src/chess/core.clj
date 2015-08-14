@@ -1,7 +1,9 @@
 (ns chess.core
     (:require [chess.indexer :refer [not-nil?]]
               [chess.move :refer [normal-move!]]
-              [chess.parser :refer [parse-move]]))
+              [chess.move.validation :refer [get-player-moves]]
+              [chess.parser :refer [parse-move]]
+              [chess.print :refer [print-board]]))
 
 ;; Dark (uppercase characters)
 ;;    | a b c d e f g h |
@@ -67,3 +69,22 @@
           history (read-string contents)]
         (do (reset! game-state (last history))
             (reset! game-history history))))
+
+(defn show-board []
+    (print-board (:board @game-state)))
+
+(defn show-history []
+    (let [board-history (map :board @game-history)]
+        (map print-board board-history)))
+
+(defn make-n-random-moves! [n]
+    (loop [count 0]
+        (if (< count n)
+            (do (let [board-history (map :board @game-history)
+                      player (:player @game-state)
+                      random-move (->> (get-player-moves board-history player)
+                                       vec
+                                       rand-nth)]
+                    (apply move! random-move))
+                (recur (inc count)))
+            nil)))
