@@ -1,5 +1,5 @@
 (ns chess.move
-    (:require [clojure.set :refer [difference]]
+    (:require [clojure.set :refer [union difference]]
               [chess.indexer :refer [lookup index contains-value? valid-ranks]]
               [chess.move.validation :refer [get-player-moves pawn? player-pieces]]))
 
@@ -32,12 +32,13 @@
             (assoc-in [:log (count (game :log))] [pos dest]))))
 
 (defn normal-move!
-    ([game-atom pos dest]
+    ([game-atom history-atom pos dest]
         (normal-move! game-atom pos dest nil))
-    ([game-atom pos dest promotion]
+    ([game-atom history-atom pos dest promotion]
         (let [board (@game-atom :board)
+        	  board-history (map :board @history-atom)
               player (@game-atom :player)]
-            (cond (contains-value? (get-player-moves board player) [pos dest])
+            (cond (contains-value? (get-player-moves board-history player) [pos dest])
                 (if (promote? board pos dest)
                     (cond ((valid-promotions player) promotion)
                           (swap! game-atom update-game pos dest promotion))

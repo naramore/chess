@@ -56,7 +56,7 @@
     ([m] (->> (parse-move m)
               (apply move!)))
     ([pos dest] (move! pos dest nil))
-    ([pos dest promotion] (normal-move! game-state pos dest promotion)))
+    ([pos dest promotion] (normal-move! game-state game-history pos dest promotion)))
 
 (defn save-game! [file]
     (let [contents (with-out-str (pr @game-history))]

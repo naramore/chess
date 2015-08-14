@@ -108,19 +108,6 @@
 (defmethod get-valid-destinations :default [board pos]
     (empty #{}))
 
-(defn get-player-piece-positions [board player]
-    (->> (cartesian-product (i/valid-files) (i/valid-ranks))
-         (map (partial apply str))
-         (filter #(= (determine-player board %)
-                     player))))
-
-(defn get-player-moves [board player]
-    (->> (get-player-piece-positions board player)
-         (map #(hash-map % (get-valid-destinations board %)))
-         (apply merge)
-         (filter #(not-empty (val %)))
-         (mapcat (fn [x] (map #(vector (key x) %) (val x))))))
-
 (defn has-not-moved? [board-history pos]
     (->> (map #(i/lookup % pos) board-history)
          (apply =)))
@@ -137,3 +124,22 @@
                  (filter #(= (i/lookup board %) \-))
                  set)
             nil)))
+
+(defn get-all-valid-destinations [board-history pos]
+    (let [board (last board-history)]
+        (hash-map pos (union (get-valid-destinations board pos)
+                             (get-pawn-double-advance board-history pos)))))
+
+(defn get-player-piece-positions [board player]
+    (->> (cartesian-product (i/valid-files) (i/valid-ranks))
+         (map (partial apply str))
+         (filter #(= (determine-player board %)
+                     player))))
+
+(defn get-player-moves [board-history player]
+    (->> (get-player-piece-positions (last board-history) player)
+         (map (partial get-all-valid-destinations board-history))
+         (apply merge)
+         (filter #(not-empty (val %)))
+         (mapcat (fn [x] (map #(vector (key x) %) (val x))))
+         set))
