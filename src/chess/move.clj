@@ -1,7 +1,7 @@
 (ns chess.move
     (:require [clojure.set :refer [union difference]]
               [chess.indexer :refer [lookup index contains-value? valid-ranks]]
-              [chess.move.validation :refer [get-player-moves pawn? player-pieces]]))
+              [chess.move.validation :refer [valid-move? pawn? player-pieces]]))
 
 (defn castle! [king-pos rook-pos])
 
@@ -38,7 +38,7 @@
         (let [board (@game-atom :board)
         	  board-history (map :board @history-atom)
               player (@game-atom :player)]
-            (cond (contains-value? (get-player-moves board-history player) [pos dest])
+            (cond (valid-move? board-history player pos dest)
                 (if (promote? board pos dest)
                     (cond ((valid-promotions player) promotion)
                           (swap! game-atom update-game pos dest promotion))
