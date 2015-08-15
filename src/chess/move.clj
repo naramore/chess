@@ -1,7 +1,7 @@
 (ns chess.move
     (:require [clojure.set :refer [union difference intersection]]
               [chess.indexer :refer [lookup index contains-value? valid-ranks]]
-              [chess.move.validation :refer [get-player-piece-positions get-player-moves valid-move? pawn? player-pieces]]))
+              [chess.move.validation :refer [get-player-piece-positions get-player-moves pawn? player-pieces]]))
 
 (defn castle! [king-pos rook-pos])
 
@@ -22,14 +22,16 @@
 		:else nil))
 
 (defn update-game
-    ([game pos dest]
+    ([game history pos dest]
         (let [piece (lookup (game :board) pos)]
-            (update-game game pos dest piece)))
-    ([game pos dest piece]
+            (update-game game history pos dest piece)))
+    ([game history pos dest piece]
         (-> (assoc-in game [:board (index pos)] \-)
             (assoc-in [:board (index dest)] piece)
-            (assoc :player (next-player (game :player)))
-            (assoc-in [:log (count (game :log))] [pos dest]))))
+            (assoc :player (next-player (:player game)))
+            (assoc-in [:log (count (:log game))] [pos dest])
+            (#(assoc % :moves (get-player-moves (conj (map :board history) (:board %))
+                                                (next-player (:player game))))))))
 
 (defn my-king-position [board player]
     (->> (get-player-piece-positions board player)
@@ -52,8 +54,8 @@
         (let [board (@game-atom :board)
         	    board-history (map :board @history-atom)
               player (@game-atom :player)]
-            (cond (valid-move? board-history player pos dest)
+            (cond ((:moves @game-atom) [pos dest])
                 (if (promote? board pos dest)
                     (cond ((valid-promotions player) promotion)
-                          (swap! game-atom update-game pos dest promotion))
-                    (swap! game-atom update-game pos dest))))))
+                          (swap! game-atom update-game @history-atom pos dest promotion))
+                    (swap! game-atom update-game @history-atom pos dest))))))

@@ -143,6 +143,3 @@
          (filter #(not-empty (val %)))
          (mapcat (fn [x] (map #(vector (key x) %) (val x))))
          set))
-
-(defn valid-move? [board-history player pos dest]
-    (i/contains-value? (get-player-moves board-history player) [pos dest]))

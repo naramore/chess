@@ -47,7 +47,8 @@
 (defn start-game! []
     (do (reset! game-state {:board starting-board
                             :player :light
-                            :log []})
+                            :log []
+                            :moves (get-player-moves [starting-board] :light)})
         (reset! game-history [@game-state])))
 
 (defn stop-game! []
@@ -57,7 +58,7 @@
 (defn move!
     ([m] (->> (parse-move m)
               (apply move!)))
-    ([pos dest] (move! pos dest nil))
+    ([pos dest] (normal-move! game-state game-history pos dest))
     ([pos dest promotion] (normal-move! game-state game-history pos dest promotion)))
 
 (defn save-game! [file]
@@ -80,9 +81,7 @@
 (defn make-n-random-moves! [n]
     (loop [count 0]
         (if (< count n)
-            (do (let [board-history (map :board @game-history)
-                      player (:player @game-state)
-                      random-move (->> (get-player-moves board-history player)
+            (do (let [random-move (->> (:moves @game-state)
                                        vec
                                        rand-nth)]
                     (apply move! random-move))
