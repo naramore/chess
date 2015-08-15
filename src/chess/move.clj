@@ -1,5 +1,5 @@
 (ns chess.move
-    (:require [clojure.set :refer [union difference]]
+    (:require [clojure.set :refer [union difference intersection]]
               [chess.indexer :refer [lookup index contains-value? valid-ranks]]
               [chess.move.validation :refer [get-player-piece-positions get-player-moves valid-move? pawn? player-pieces]]))
 
@@ -45,10 +45,12 @@
 
 (defn normal-move!
     ([game-atom history-atom pos dest]
-        (normal-move! game-atom pos dest nil))
+        (let [player (:player @game-atom)
+              piece (intersection #{\q \Q} (player-pieces player))]
+            (normal-move! game-atom history-atom pos dest (first piece))))
     ([game-atom history-atom pos dest promotion]
         (let [board (@game-atom :board)
-        	  board-history (map :board @history-atom)
+        	    board-history (map :board @history-atom)
               player (@game-atom :player)]
             (cond (valid-move? board-history player pos dest)
                 (if (promote? board pos dest)
